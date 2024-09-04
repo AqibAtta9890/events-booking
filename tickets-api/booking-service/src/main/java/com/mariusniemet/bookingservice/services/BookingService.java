@@ -1,12 +1,15 @@
 package com.mariusniemet.bookingservice.services;
 
 import com.mariusniemet.bookingservice.dtos.BookingDto;
+import com.mariusniemet.bookingservice.dtos.CancelBookingRequest;
+import com.mariusniemet.bookingservice.dtos.CreateBookingResponse;
 import com.mariusniemet.bookingservice.dtos.EventDto;
 import com.mariusniemet.bookingservice.dtos.TicketDto;
 import com.mariusniemet.bookingservice.dtos.TicketType;
 import com.mariusniemet.bookingservice.entities.Booking;
 import com.mariusniemet.bookingservice.exception.BadRequestException;
 import com.mariusniemet.bookingservice.repositories.IBookingRepository;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,7 +29,7 @@ public class BookingService {
   private IBookingRepository bookingRepository;
 
 
-  public BookingDto createBooking(BookingDto bookingDto) {
+  public CreateBookingResponse createBooking(BookingDto bookingDto) {
 
     EventDto event = eventServiceClient.getEventDetail(bookingDto.getEventName(),
         bookingDto.getTicketType());
@@ -62,8 +65,6 @@ public class BookingService {
 
     bookingRepository.saveAndFlush(booking);
 
-    BookingDto dto = new BookingDto();
-
     //update the tickets available for event after booking successful
 
     EventDto eventDto = new EventDto();
@@ -73,14 +74,55 @@ public class BookingService {
     ticketDtoUpdate.setTicketType(TicketType.valueOf(bookingDto.getTicketType()));
     eventDto.setTicketDetails(List.of(ticketDtoUpdate));
 
-    eventServiceClient.updateEvent(event.getId(),eventDto);
+    eventServiceClient.updateEvent(event.getId(), eventDto);
 
-    dto.setBookingId(booking.getId());
-    dto.setEventName(booking.getEventName());
-    dto.setNoOfTickets(booking.getNoOfTickets());
-    dto.setUserEmail(booking.getUserEmail());
+    CreateBookingResponse bookingResponse = new CreateBookingResponse();
 
-    return bookingDto;
+    bookingResponse.setBookingId(booking.getId());
+    bookingResponse.setEventName(booking.getEventName());
+    bookingResponse.setUserEmail(booking.getUserEmail());
+
+    return bookingResponse;
+
+
+  }
+
+
+  @Transactional
+  public void cancelBookingRequest(CancelBookingRequest cancelBookingRequest) {
+
+    Booking booking = bookingRepository.findByUserEmailAndEventName(
+        cancelBookingRequest.getUserEmail(),
+        cancelBookingRequest.getEventName()).orElseThrow(() -> new BadRequestException(
+        String.format("no booking found with event name : %s and user Id : %s ",
+            cancelBookingRequest.getUserEmail(), cancelBookingRequest.getEventName())));
+
+    booking.setStatus("CANCELLED");
+
+
+    EventDto event = eventServiceClient.getEventDetail(cancelBookingRequest.getEventName(),
+        cancelBookingRequest.getTicketType());
+
+    if (CollectionUtils.isEmpty(event.getTicketDetails())) {
+      throw new BadRequestException(" no event ticket details found");
+    }
+
+    TicketDto ticketDto = event.getTicketDetails().get(0);
+
+    EventDto eventDto = new EventDto();
+    eventDto.setId(event.getId());
+    TicketDto ticketDtoUpdate = new TicketDto();
+    ticketDtoUpdate.setTicketsAvailable(ticketDto.getTicketsAvailable() + booking.getNoOfTickets());
+    ticketDtoUpdate.setTicketType(TicketType.valueOf(cancelBookingRequest.getTicketType()));
+    eventDto.setTicketDetails(List.of(ticketDtoUpdate));
+
+    eventServiceClient.updateEvent(event.getId(), eventDto);
+
+
+    bookingRepository.saveAndFlush(booking);
+
+
+
 
 
   }

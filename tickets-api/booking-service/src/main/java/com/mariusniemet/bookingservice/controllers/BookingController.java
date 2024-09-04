@@ -1,6 +1,8 @@
 package com.mariusniemet.bookingservice.controllers;
 
 import com.mariusniemet.bookingservice.dtos.BookingDto;
+import com.mariusniemet.bookingservice.dtos.CancelBookingRequest;
+import com.mariusniemet.bookingservice.dtos.CreateBookingResponse;
 import com.mariusniemet.bookingservice.services.BookingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,9 +19,15 @@ public class BookingController {
 
 
   @PostMapping
-  public BookingDto createBooking(@RequestBody BookingDto bookingDto) {
+  public CreateBookingResponse createBooking(@RequestBody BookingDto bookingDto) {
 
     return bookingService.createBooking(bookingDto);
+  }
+
+  @PostMapping("/cancelBooking")
+  public void cancelBooking(@RequestBody CancelBookingRequest cancelBookingRequest){
+    bookingService.cancelBookingRequest(cancelBookingRequest);
+
   }
 
 
