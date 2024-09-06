@@ -79,7 +79,7 @@ public class BookingService {
 
     eventServiceClient.updateEvent(event.getId(), eventDto);
 
-    notificationService.sendBookingConfirmationEmail(eventDto,booking);
+    notificationService.sendBookingConfirmationEmail(event,booking);
 
 
     CreateBookingResponse bookingResponse = new CreateBookingResponse();

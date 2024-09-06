@@ -36,7 +36,7 @@ public class NotificationService {
           "User Name: " + booking.getUserEmail() + "\n" +
           "Ticket Type: " + booking.getTicketType() + "\n" +
           "Number of Tickets: " + booking.getNoOfTickets() + "\n\n" +
-          "Payment Amount: $" + String.format("%.2f", booking.getTotalPrice()) + "\n\n";
+          "Payment Amount: Rs " + String.format("%.2f", booking.getTotalPrice()) + "\n\n";
 
       sendEmail(EmailDetails.builder().recipient(booking.getUserEmail())
           .subject("event booking confirmation").messageBody(message).build());
