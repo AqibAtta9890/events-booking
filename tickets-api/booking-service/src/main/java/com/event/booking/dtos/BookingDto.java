@@ -19,5 +19,9 @@ public class BookingDto {
 
   private Long bookingId;
 
+  private String status;
+
+  private Double price;
+
 
 }

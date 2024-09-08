@@ -11,6 +11,7 @@ import com.event.booking.exception.BadRequestException;
 import com.event.booking.repositories.IBookingRepository;
 import jakarta.transaction.Transactional;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -79,8 +80,7 @@ public class BookingService {
 
     eventServiceClient.updateEvent(event.getId(), eventDto);
 
-    notificationService.sendBookingConfirmationEmail(event,booking);
-
+    notificationService.sendBookingConfirmationEmail(event, booking);
 
     CreateBookingResponse bookingResponse = new CreateBookingResponse();
 
@@ -105,7 +105,6 @@ public class BookingService {
 
     booking.setStatus("CANCELLED");
 
-
     EventDto event = eventServiceClient.getEventDetail(cancelBookingRequest.getEventName(),
         cancelBookingRequest.getTicketType());
 
@@ -124,12 +123,28 @@ public class BookingService {
 
     eventServiceClient.updateEvent(event.getId(), eventDto);
 
-
     bookingRepository.saveAndFlush(booking);
 
 
+  }
 
 
+  public List<BookingDto> getUserBookings(String userEmail) {
+
+    return bookingRepository.findByUserEmail(userEmail).stream().map(booking -> {
+
+      BookingDto bookingDto = new BookingDto();
+
+      bookingDto.setBookingId(booking.getId());
+      bookingDto.setUserEmail(booking.getUserEmail());
+      bookingDto.setEventName(booking.getEventName());
+      bookingDto.setStatus(booking.getStatus());
+      bookingDto.setNoOfTickets(booking.getNoOfTickets());
+      bookingDto.setPrice(booking.getTotalPrice());
+      bookingDto.setTicketType(booking.getTicketType());
+
+      return bookingDto;
+    }).collect(Collectors.toList());
 
   }
 

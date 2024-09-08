@@ -29,6 +29,11 @@ public class EventsService {
   public void create(EventDto createDto) {
     this.logger.info("Creating an event... [{}]", createDto);
 
+    if (repository.findByName(createDto.getName()).isPresent()) {
+      throw new BadRequestException(
+          String.format("event with name : %s already present", createDto.getName()));
+    }
+
     Event event = new Event();
 
     event.setName(createDto.getName());

@@ -39,5 +39,6 @@ eureka:
     service-url:
       defaultZone: http://localhost:7002/eureka
   instance:
-    hostname: registry
+    prefer-ip-address: true
+
 
