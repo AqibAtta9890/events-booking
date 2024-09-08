@@ -54,6 +54,10 @@ b. Then Run Event Service to create /manage event. Below are the curls for event
     
              curl --location 'http://localhost:7003/api/v1/events/independence day'
 
+          4. Get all Events
+
+             curl --location 'http://localhost:7003/api/v1/events/all'
+
 
 c. Then Run Booking Service to create booking for event
 
