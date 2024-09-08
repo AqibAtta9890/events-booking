@@ -8,6 +8,7 @@ import com.api.eventmanagement.entities.EventTicket;
 import com.api.eventmanagement.exception.BadRequestException;
 import com.api.eventmanagement.repositories.IEventRepository;
 import jakarta.transaction.Transactional;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.commons.lang.StringUtils;
@@ -26,7 +27,7 @@ public class EventsService {
     this.repository = repository;
   }
 
-  public void create(EventDto createDto) {
+  public Long create(EventDto createDto) {
     this.logger.info("Creating an event... [{}]", createDto);
 
     if (repository.findByName(createDto.getName()).isPresent()) {
@@ -59,6 +60,8 @@ public class EventsService {
     repository.saveAndFlush(event);
 
     logger.info("Event created successfully");
+
+    return event.getId();
 
   }
 
@@ -96,6 +99,34 @@ public class EventsService {
     return eventDto;
 
   }
+
+
+  public List<EventDto> findAllEvents(){
+
+    this.logger.info("finding all events");
+
+    return repository.findAll().stream().map(event -> {
+
+          EventDto eventDto = new EventDto();
+          eventDto.setId(event.getId());
+          eventDto.setName(event.getName());
+          eventDto.setDate(event.getDate());
+          eventDto.setLocation(event.getLocation());
+          eventDto.setTicketDetails(event.getEventTickets().stream()
+              .map(eventTicket -> {
+                TicketDto ticketDto = new TicketDto();
+                ticketDto.setPrice(eventTicket.getPrice());
+                ticketDto.setTicketsAvailable(eventTicket.getTicketsAvailable());
+                ticketDto.setTicketType(TicketType.valueOf(eventTicket.getTicketType()));
+                return ticketDto;
+              }).collect(Collectors.toList()));
+
+          return eventDto;
+        }).collect(Collectors.toList());
+
+  }
+
+
 
   @Transactional
   public void update(Long id, EventDto updateDto) throws BadRequestException {
